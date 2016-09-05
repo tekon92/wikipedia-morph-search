@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Wiki-search</title>
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <link rel="stylesheet" href="bower_components/normalize-css/normalize.css">
+    <link rel="stylesheet" href="css/styles.css">
+  </head>
+  <body @keyup.esc="closeForm()">
+    <div class="container">
+      <div class="search-bar" :class="{ 'open': test1 }">
+         <div class="search-bar-form">
+           <input type="search" class="search-bar-input" @click="getOpen()" placeholder="Search..." @keyup.esc="closeForm()" @keyup.enter="getAsk()" v-model="newAsk">
+           <button class="search-bar-submit" type="submit" @click="getAsk()">Search</button>
+         </div>
+
+
+       <div class="result-wrap" v-show="askChecked">
+         <div class="result" v-for="elem in askRes" transition="expand">
+           <h2><a href="http://en.wikipedia.org/?curid={{elem.pageid}}" target="_blank">{{ elem.title }}</a></h2>
+           <p>{{ elem.extract }}</p>
+         </div>
+       </div>
+
+       <span class="search-bar-close" v-on:click="closeForm()"></span>
+       </div>
+        <div class="overlay"></div>
+       <!-- <search-bar></search-bar> -->
+    </div>
+
+    <script src="bower_components/vue/dist/vue.js"></script>
+    <script src="bower_components/vue-resource/dist/vue-resource.js"></script>
+
+    <script>
+
+    const vm = new Vue({
+      el: 'body',
+      data: {
+        test1: 'coba',
+        askRes: null,
+        newAsk: '',
+        newUrl: '',
+        ask: null,
+        askChecked: false
+      },
+      ready: function () {
+          // this.getLink()
+      },
+      methods: {
+        getOpen: function () {
+          this.test1 = 'open'
+        },
+        closeForm: function () {
+          this.test1 = ''
+          this.newAsk = ''
+          this.askRes = ''
+          this.askChecked = false
+        },
+        getUrl: function () {
+          var apiUrl = "https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrnamespace=0&exsentences=1&exintro&explaintext&exlimit=max&prop=extracts&gsrlimit=10&gsrsearch="+this.newAsk+"&format=json"
+          this.$set('newUrl', apiUrl)
+        },
+        getAsk: function () {
+          this.getUrl()
+          this.$http.jsonp(this.newUrl).then((response) => {
+            this.askRes = response.data.query.pages
+            this.askChecked = true
+          }, (response) => {
+            // if api not working
+            console.log(response.data)
+          })
+        },
+      }
+    })
+    </script>
+  </body>
+</html>
